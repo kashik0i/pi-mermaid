@@ -7,12 +7,13 @@ const extension = await jiti.import(new URL('../index.ts', import.meta.url).path
 const renderers = new Map();
 const commands = new Map();
 const handlers = new Map();
+const sentMessages = [];
 
 extension({
   registerMessageRenderer: (type, renderer) => renderers.set(type, renderer),
   registerCommand: (name, command) => commands.set(name, command),
   on: (event, handler) => handlers.set(event, handler),
-  sendMessage: () => {},
+  sendMessage: (message) => sentMessages.push(message),
 });
 
 assert.equal(typeof renderers.get('pi-mermaid'), 'function');
@@ -48,5 +49,16 @@ for (const expanded of [false, true]) {
     assert.match(rendered, /more lines/);
   }
 }
+
+await handlers.get('input')(
+  { source: 'interactive', text: '```mermaid\ngraph TD\n  A --> B\n```' },
+  { hasUI: false },
+);
+assert.equal(sentMessages.length, 1);
+assert.equal(sentMessages[0].customType, 'pi-mermaid');
+assert.equal(sentMessages[0].display, true);
+assert.match(sentMessages[0].content, /\[mermaid:rendered\]/);
+assert.equal(sentMessages[0].details.source, 'graph TD\n  A --> B');
+assert.match(sentMessages[0].details.ascii, /A/);
 
 console.log('Renderer smoke test passed.');

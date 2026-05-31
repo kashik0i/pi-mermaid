@@ -119,7 +119,8 @@ function buildContextContent(
 	includeSource: boolean,
 ): string {
 	const issueLines = formatIssueLines(issues, hash);
-	if (!includeSource) return issueLines;
+	const renderedLine = `[mermaid:rendered][hash:${hash}] ASCII render available in message details.`;
+	if (!includeSource) return issueLines || renderedLine;
 
 	const normalizedBlock = normalizeMermaidSource(block);
 	const sourceBlock = `%% mermaid-hash: ${hash}\n${normalizedBlock}`;
