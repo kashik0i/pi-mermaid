@@ -1,6 +1,5 @@
-import type { ExtensionAPI, ExtensionContext, MessageRenderer, SessionEntry } from "@mariozechner/pi-coding-agent";
-import { getMarkdownTheme, keyHint } from "@mariozechner/pi-coding-agent";
-import { Box, Spacer, Text, type Component, truncateToWidth, visibleWidth } from "@mariozechner/pi-tui";
+import type { ExtensionAPI, ExtensionContext, MessageRenderer, SessionEntry } from "@earendil-works/pi-coding-agent";
+import { Box, Spacer, Text, type Component, truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 import { createHash } from "node:crypto";
 import { renderMermaidAscii } from "beautiful-mermaid";
 
@@ -436,7 +435,7 @@ export default function (pi: ExtensionAPI) {
 
 				if (hasOverflow && !isExpanded) {
 					const remainingLines = selection.lineCount - COLLAPSED_LINES;
-					const hintText = `... (${remainingLines} more lines, ${keyHint("expandTools", "to expand")})`;
+					const hintText = `... (${remainingLines} more lines, expand tool output to view)`;
 					lines.push(truncateToWidth(theme.fg("muted", hintText), contentWidth));
 				}
 
@@ -455,15 +454,12 @@ export default function (pi: ExtensionAPI) {
 
 		if (expanded && details?.source) {
 			box.addChild(new Spacer(1));
-			const markdownTheme = getMarkdownTheme();
-			const indent = markdownTheme.codeBlockIndent ?? "  ";
+			const indent = "  ";
 			const normalizedSource = normalizeMermaidSource(details.source);
-			const highlighted = markdownTheme.highlightCode?.(normalizedSource, "mermaid");
-			const codeLines = highlighted ?? normalizedSource.split("\n").map((line) => markdownTheme.codeBlock(line));
 			const renderedLines = [
-				markdownTheme.codeBlockBorder("```mermaid"),
-				...codeLines.map((line) => `${indent}${line}`),
-				markdownTheme.codeBlockBorder("```"),
+				theme.fg("mdCodeBlockBorder", "```mermaid"),
+				...normalizedSource.split("\n").map((line) => `${indent}${theme.fg("mdCodeBlock", line)}`),
+				theme.fg("mdCodeBlockBorder", "```"),
 			].join("\n");
 			box.addChild(new Text(renderedLines, 0, 0));
 		}
